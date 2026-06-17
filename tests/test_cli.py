@@ -120,7 +120,7 @@ def test_missing_subcommand_error_message(capsys):
     captured = capsys.readouterr()
     
     # Message should mention required argument or usage
-    error_output = captured.stderr + captured.stdout
+    error_output = captured.err + captured.out
     assert "required" in error_output.lower() or "usage" in error_output.lower()
 
 
@@ -131,7 +131,7 @@ def test_unknown_subcommand_error_message(capsys):
         parser.parse_args(["badcommand"])
     captured = capsys.readouterr()
     
-    error_output = captured.stderr + captured.stdout
+    error_output = captured.err + captured.out
     assert "badcommand" in error_output or "invalid choice" in error_output.lower()
 
 
@@ -142,7 +142,7 @@ def test_enroll_missing_arguments_error_message(capsys):
         parser.parse_args(["enroll"])
     captured = capsys.readouterr()
     
-    error_output = captured.stderr + captured.stdout
+    error_output = captured.err + captured.out
     assert "required" in error_output.lower() or "user" in error_output.lower()
 
 
@@ -153,7 +153,7 @@ def test_enroll_missing_device_error_message(capsys):
         parser.parse_args(["enroll", "alice"])
     captured = capsys.readouterr()
     
-    error_output = captured.stderr + captured.stdout
+    error_output = captured.err + captured.out
     assert "required" in error_output.lower() or "device" in error_output.lower()
 
 
@@ -164,7 +164,7 @@ def test_expose_missing_argument_error_message(capsys):
         parser.parse_args(["expose"])
     captured = capsys.readouterr()
     
-    error_output = captured.stderr + captured.stdout
+    error_output = captured.err + captured.out
     assert "required" in error_output.lower() or "common_name" in error_output.lower()
 
 
@@ -175,7 +175,7 @@ def test_unexpose_missing_argument_error_message(capsys):
         parser.parse_args(["unexpose"])
     captured = capsys.readouterr()
     
-    error_output = captured.stderr + captured.stdout
+    error_output = captured.err + captured.out
     assert "required" in error_output.lower() or "common_name" in error_output.lower()
 
 
@@ -186,7 +186,7 @@ def test_revoke_missing_argument_error_message(capsys):
         parser.parse_args(["revoke"])
     captured = capsys.readouterr()
     
-    error_output = captured.stderr + captured.stdout
+    error_output = captured.err + captured.out
     assert "required" in error_output.lower() or "common_name" in error_output.lower()
 
 
@@ -197,7 +197,7 @@ def test_show_missing_argument_error_message(capsys):
         parser.parse_args(["show"])
     captured = capsys.readouterr()
     
-    error_output = captured.stderr + captured.stdout
+    error_output = captured.err + captured.out
     assert "required" in error_output.lower() or "common_name" in error_output.lower()
 
 
@@ -208,5 +208,5 @@ def test_list_with_mutually_exclusive_flags_error_message(capsys):
         parser.parse_args(["list", "--active", "--revoked"])
     captured = capsys.readouterr()
     
-    error_output = captured.stderr + captured.stdout
+    error_output = captured.err + captured.out
     assert "not allowed" in error_output.lower() or "mutually exclusive" in error_output.lower() or "argument" in error_output.lower()

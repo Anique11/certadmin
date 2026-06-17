@@ -10,6 +10,7 @@ def test_load_registry_starts_empty_when_missing(tmp_path: Path, monkeypatch):
     monkeypatch.setenv("PKI_BASE_PATH", str(tmp_path))
     monkeypatch.setattr(config, "BASE_PATH", tmp_path)
     monkeypatch.setattr(config, "REGISTRY_PATH", tmp_path / "registry.json")
+    config.REGISTRY_PATH.unlink()
 
     loaded = registry.load_registry()
     assert loaded == {}
