@@ -1,0 +1,40 @@
+[build-system]
+requires = [
+    "setuptools>=61.0",
+    "wheel",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "certadmin"
+version = "1.0.0"
+description = "Command-line utility for managing client certificates in a private OpenSSL-based PKI"
+authors = [
+    { name = "Anique van Berne" },
+]
+license = { text = "MIT" }
+readme = "certadmin/README.md"
+requires-python = ">=3.13"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]
+python_files = [
+    "test_*.py",
+]
+python_classes = [
+    "Test*",
+]
+python_functions = [
+    "test_*",
+]
+addopts = "-v --tb=short"
+
+[tool.setuptools.package-dir]
+"" = "."

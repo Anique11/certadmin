@@ -1,0 +1,50 @@
+{
+    "active-exposed-iphone": {
+        "user": "active",
+        "device": "exposed-iphone",
+        "serial": "1001",
+        "not_before": "2026-06-01T10:00:00+00:00",
+        "not_after": "2036-06-01T10:00:00+00:00",
+        "revoked": false
+    },
+    "active-exposed-laptop": {
+        "user": "active",
+        "device": "exposed-laptop",
+        "serial": "1002",
+        "not_before": "2026-06-01T10:00:00+00:00",
+        "not_after": "2036-06-01T10:00:00+00:00",
+        "revoked": false
+    },
+    "active-unexposed-ipad": {
+        "user": "active",
+        "device": "unexposed-ipad",
+        "serial": "1003",
+        "not_before": "2026-06-01T10:00:00+00:00",
+        "not_after": "2036-06-01T10:00:00+00:00",
+        "revoked": false
+    },
+    "active-unexposed-desktop": {
+        "user": "active",
+        "device": "unexposed-desktop",
+        "serial": "1004",
+        "not_before": "2026-06-01T10:00:00+00:00",
+        "not_after": "2036-06-01T10:00:00+00:00",
+        "revoked": false
+    },
+    "revoked-phone": {
+        "user": "revoked",
+        "device": "phone",
+        "serial": "1005",
+        "not_before": "2026-06-01T10:00:00+00:00",
+        "not_after": "2036-06-01T10:00:00+00:00",
+        "revoked": true
+    },
+    "revoked-tablet": {
+        "user": "revoked",
+        "device": "tablet",
+        "serial": "1006",
+        "not_before": "2026-06-01T10:00:00+00:00",
+        "not_after": "2036-06-01T10:00:00+00:00",
+        "revoked": true
+    }
+}
