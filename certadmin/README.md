@@ -169,10 +169,12 @@ Example:
 
 ```text
 /opt/certadmin/
-├── certadmin.py
-├── config.py
-├── commands/
-└── lib/
+├── pyproject.toml
+└── certadmin/
+    ├── certadmin.py
+    ├── config.py
+    ├── commands/
+    └── lib/
 
 /opt/pki/intermediate-ca/
 ├── private/
@@ -206,6 +208,10 @@ export PKI_BASE_PATH=/path/to/intermediate-ca
 
 This is useful for local testing or alternative installations.
 
+CertAdmin refuses to run if the CA base directory is configured inside the
+application directory. PKI state, private keys, issued certificates, and registry
+files should live outside the CertAdmin source tree.
+
 ### Permissions
 
 Recommended permissions:
@@ -223,10 +229,10 @@ Administrative commands should be executed with `sudo`.
 
 Read-only commands such as `list` and `show` may be executed without elevated privileges.
 
-## Installation
+## Setup checklist
 
 1. Install prerequisites:
-   * `python3` (run with `python3 certadmin.py` or via a symlink)
+   * `python3`
    * `openssl` available on `PATH`
    * A valid OpenSSL intermediate CA layout under `BASE_PATH` with:
      * `openssl.cnf`
@@ -236,25 +242,37 @@ Read-only commands such as `list` and `show` may be executed without elevated pr
      * `clients/`
      * `private/`
      * `serial` and `index.txt`
-2. Adjust paths in `config.py` or create `config_local.py` for local overrides.
-3. Optionally set `PKI_BASE_PATH` instead of editing `config.py`:
+2. Install CertAdmin:
+
+```bash
+python3 -m pip install .
+```
+
+For local development:
+
+```bash
+python3 -m pip install -e .[dev]
+```
+
+3. Adjust paths in `config.py` or create `config_local.py` for local overrides.
+4. Optionally set `PKI_BASE_PATH` instead of editing `config.py`:
 
 ```bash
 export PKI_BASE_PATH=/path/to/intermediate-ca
 ```
 
-4. Make the command executable and optionally add it to your `PATH`:
+5. Verify the command and environment before use:
 
 ```bash
-chmod +x certadmin.py
-sudo ln -s /opt/certadmin/certadmin.py /usr/local/bin/certadmin
-```
-
-5. Verify the environment before use:
-
-```bash
+certadmin --version
 python3 --version
 openssl version
+```
+
+The package can also be run directly as a module:
+
+```bash
+python3 -m certadmin --version
 ```
 
 ## License

@@ -5,9 +5,9 @@ if TYPE_CHECKING:
     import argparse
 
 
-from lib.crypto import revoke_cert
-from lib.exposure import is_exposed, unexpose_p12
-from lib import registry
+from certadmin.lib.crypto import revoke_cert
+from certadmin.lib.exposure import is_exposed, unexpose_p12
+from certadmin.lib import registry
 
 
 

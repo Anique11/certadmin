@@ -10,8 +10,8 @@ all certificates and their states.
 
 import json
 
-import config
-from lib.util import runtime_state
+from certadmin import config
+from certadmin.lib.util import runtime_state
 
 RegistryEntry = dict[str, str | bool]
 RegistryData = dict[str, RegistryEntry]

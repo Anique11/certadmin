@@ -9,8 +9,8 @@ from datetime import UTC, datetime
 import re
 import subprocess
 
-import config
-from lib import util
+from certadmin import config
+from certadmin.lib import util
 
 
 

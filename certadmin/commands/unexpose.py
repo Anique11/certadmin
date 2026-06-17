@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import argparse
 
-from lib.exposure import unexpose_p12
+from certadmin.lib.exposure import unexpose_p12
 
 
 

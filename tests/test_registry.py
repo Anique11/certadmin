@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pytest
 
-import config
-from lib import registry
+from certadmin import config
+from certadmin.lib import registry
 
 
 def test_load_registry_starts_empty_when_missing(tmp_path: Path, monkeypatch):

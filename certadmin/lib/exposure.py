@@ -9,9 +9,9 @@ if TYPE_CHECKING:
 
 import shutil
 
-import config
-from lib.registry import is_revoked
-from lib import util
+from certadmin import config
+from certadmin.lib.registry import is_revoked
+from certadmin.lib import util
 
 
 def expose_p12(common_name: str) -> None:

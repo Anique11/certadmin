@@ -2,13 +2,17 @@
 """Utility for automated certification management."""
 
 import argparse
+from pathlib import Path
 import re
 from subprocess import CalledProcessError
 import sys
 
-import config
-from commands import enroll, expose, unexpose, revoke, list_certs, show
-from lib.util import runtime_state
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from certadmin import config
+from certadmin.commands import enroll, expose, unexpose, revoke, list_certs, show
+from certadmin.lib.util import runtime_state
 
 
 
@@ -54,6 +58,7 @@ def build_parser() -> argparse.ArgumentParser:
     (enroll, expose, unexpose, revoke, list, show) with their respective arguments.
     """
     parser = argparse.ArgumentParser(
+        prog="certadmin",
         description="Client certificate administration utility"
     )
     parser.add_argument("--dry-run", action="store_true",

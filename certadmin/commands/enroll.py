@@ -6,10 +6,10 @@ if TYPE_CHECKING:
     import argparse
     from pathlib import Path
 
-import config
-from lib import crypto
-from lib.registry import add_entry as registry_add_entry
-from lib import util
+from certadmin import config
+from certadmin.lib import crypto
+from certadmin.lib.registry import add_entry as registry_add_entry
+from certadmin.lib import util
 
 
 def run(args: argparse.Namespace) -> None:

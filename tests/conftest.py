@@ -1,14 +1,10 @@
 import json
 import shutil
-import sys
 from pathlib import Path
 
 import pytest
 
-ROOT = Path(__file__).resolve().parents[1] / "certadmin"
-sys.path.insert(0, str(ROOT))
-
-import config
+from certadmin import config
 
 TEST_REGISTRY_DATA = Path(__file__).parent / "registry_testdata.json"
 

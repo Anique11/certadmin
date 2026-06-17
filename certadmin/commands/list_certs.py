@@ -5,8 +5,8 @@ if TYPE_CHECKING:
     import argparse
     from typing import Any
 
-from lib import registry
-from lib.exposure import is_exposed
+from certadmin.lib import registry
+from certadmin.lib.exposure import is_exposed
 
 def display_list(reg_list: dict[str, Any]) -> None:
     """Print dictionary keys as a numbered list."""

@@ -29,7 +29,7 @@ CRL_PATH: Path = BASE_PATH / "crl" / "intermediate.crl.pem"
 # Override with local defaults, if available.
 # This enables local testing before rolling out to 'production' environment. 
 try:
-    from config_local import (
+    from certadmin.config_local import (
         BASE_PATH, 
         CLIENTS_PATH, ISSUED_CERTS_PATH,
         P12_SHARE_PATH, P12_SHARE_URL, 

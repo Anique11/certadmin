@@ -1,12 +1,8 @@
 """Tests for command handlers using preloaded test registry."""
 
-from pathlib import Path
-from io import StringIO
-import sys
-
 import pytest
 
-from commands import list_certs, show
+from certadmin.commands import list_certs, show
 
 
 def test_list_all_certificates(capsys):

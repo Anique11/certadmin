@@ -1,7 +1,7 @@
 import pytest
 
-import config
-import certadmin as certadmin_module
+from certadmin import config
+from certadmin import certadmin as certadmin_module
 
 
 def test_validate_user_ok():
