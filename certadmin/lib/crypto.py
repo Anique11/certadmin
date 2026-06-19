@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pathlib import Path
 
-from datetime import UTC, datetime
+from datetime import datetime
 import re
 import subprocess
 
@@ -136,7 +136,7 @@ def get_cert_info(cert: Path) -> dict[str, str]:
     """
     print(f"Extracting certificate info from: {cert}")
     
-    def run_openssl_x509(flag: str, extra_args: list = None) -> str:
+    def run_openssl_x509(flag: str, extra_args: list[str] | None = None) -> str:
         cmd = [config.OPENSSL, "x509", "-in", str(cert), "-noout", flag]
         if extra_args:
             cmd.extend(extra_args)

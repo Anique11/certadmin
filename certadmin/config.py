@@ -1,5 +1,6 @@
 """Configuration of locations for use by the certificate administration tool."""
 
+import importlib
 import os
 from pathlib import Path
 
@@ -29,15 +30,20 @@ CRL_PATH: Path = BASE_PATH / "crl" / "intermediate.crl.pem"
 # Override with local defaults, if available.
 # This enables local testing before rolling out to 'production' environment. 
 try:
-    from certadmin.config_local import (
-        BASE_PATH, 
-        CLIENTS_PATH, ISSUED_CERTS_PATH,
-        P12_SHARE_PATH, P12_SHARE_URL, 
-        REGISTRY_PATH,
-        OPENSSL, OPENSSL_CONF, CHAIN_PATH, CRL_PATH
-    )
+    config_local = importlib.import_module("certadmin.config_local")
 except ImportError:
     pass
+else:
+    BASE_PATH = config_local.BASE_PATH
+    CLIENTS_PATH = config_local.CLIENTS_PATH
+    ISSUED_CERTS_PATH = config_local.ISSUED_CERTS_PATH
+    P12_SHARE_PATH = config_local.P12_SHARE_PATH
+    P12_SHARE_URL = config_local.P12_SHARE_URL
+    REGISTRY_PATH = config_local.REGISTRY_PATH
+    OPENSSL = config_local.OPENSSL
+    OPENSSL_CONF = config_local.OPENSSL_CONF
+    CHAIN_PATH = config_local.CHAIN_PATH
+    CRL_PATH = config_local.CRL_PATH
 
 
 def validate_runtime_paths() -> None:

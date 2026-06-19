@@ -121,7 +121,7 @@ def add_entry(cert_info: CertInfo) -> None:
         )
     print(f"Registering new certificate: {common_name}")
     user, device = common_name.split("-", 1)
-    new_entry = {
+    new_entry: RegistryEntry = {
         "user": user,
         "device": device,
         "serial": cert_info["serial"],

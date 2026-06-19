@@ -1,13 +1,12 @@
 from multiprocessing import Event, Process
 from pathlib import Path
 
-import pytest
 
 from certadmin import config
 from certadmin.lib import registry
 
 
-def write_registry_entry(registry_path: str, started: Event, done: Event) -> None:
+def write_registry_entry(registry_path: str, started, done) -> None:
     """Write a registry entry from another process."""
     from certadmin import config as child_config
     from certadmin.lib import registry as child_registry

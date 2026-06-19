@@ -6,7 +6,6 @@ if TYPE_CHECKING:
     import argparse
     from pathlib import Path
 
-from certadmin import config
 from certadmin.lib import crypto
 from certadmin.lib.registry import add_entry as registry_add_entry
 from certadmin.lib import util

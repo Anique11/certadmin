@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import argparse
     from typing import Any
+    from certadmin.lib.registry import RegistryData
 
 from certadmin.lib import registry
 from certadmin.lib.exposure import is_exposed
@@ -14,13 +15,13 @@ def display_list(reg_list: dict[str, Any]) -> None:
     for pos, name in enumerate(names, start=1):
         print(f"{pos:3d}. {name}")
 
-def list_exposed_certs() -> dict[str, dict]:
+def list_exposed_certs() -> RegistryData:
     """List all exposed certificates."""
     active = registry.list_active_certs()
     return {cn: entry for cn, entry in active.items()
             if is_exposed(cn)}
 
-def list_unexposed_certs() -> dict[str, dict]:
+def list_unexposed_certs() -> RegistryData:
     """List all unexposed certificates."""
     active = registry.list_active_certs()
     return {cn: entry for cn, entry in active.items()

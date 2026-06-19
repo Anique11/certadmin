@@ -34,7 +34,7 @@ def validate_device(device: str) -> str:
     device = device.lower()
     if not DEVICE_RE.fullmatch(device):
         raise ValueError(
-            f"Invalid device.\n"
+            "Invalid device.\n"
             "Allowed: lowercase letters, digits, single hyphens."
         )
     return device
