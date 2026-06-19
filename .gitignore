@@ -9,6 +9,7 @@ build/
 .venv/
 venv/
 .env
+env/
 
 # Local machine configuration
 certadmin/config_local.py
