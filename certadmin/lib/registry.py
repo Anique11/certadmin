@@ -7,7 +7,16 @@ their status (active, revoked, exposed), and other relevant details.
 The registry allows the certificate management system to keep track of 
 all certificates and their states.
 """
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from typing import Callable, Iterator, ParamSpec, TypeVar
+    P = ParamSpec("P")
+    R = TypeVar("R")
 
+from contextlib import contextmanager
+import fcntl
+from functools import wraps
 import json
 
 from certadmin import config
@@ -16,6 +25,29 @@ from certadmin.lib.util import runtime_state
 RegistryEntry = dict[str, str | bool]
 RegistryData = dict[str, RegistryEntry]
 CertInfo = dict[str, str]
+
+
+@contextmanager
+def registry_write_lock() -> Iterator[None]:
+    """Hold an exclusive lock for registry read-modify-write operations."""
+    lock_path = config.REGISTRY_PATH.with_suffix(".lock")
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(lock_path, "w") as lock_file:
+        fcntl.flock(lock_file, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(lock_file, fcntl.LOCK_UN)
+
+
+def with_registry_write_lock(func: Callable[P, R]) -> Callable[P, R]:
+    """Run a registry write operation under the registry write lock."""
+    @wraps(func)
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+        with registry_write_lock():
+            return func(*args, **kwargs)
+    return wrapper
+
 
 def load_registry() -> RegistryData:
     """Load the certificate registry from the JSON file.
@@ -61,6 +93,7 @@ def get_registry_entry(common_name: str) -> RegistryEntry:
         )
     return registry_data[common_name]
 
+@with_registry_write_lock
 def add_entry(cert_info: CertInfo) -> None:
     """Add a new certificate entry to the registry.
 
@@ -91,6 +124,7 @@ def add_entry(cert_info: CertInfo) -> None:
     registry_data[common_name] = new_entry
     save_registry(registry_data)
 
+@with_registry_write_lock
 def mark_revoked(common_name: str) -> None:
     """Mark the certificate with the given common name as revoked.
 
