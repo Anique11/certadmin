@@ -8,7 +8,7 @@ The registry allows the certificate management system to keep track of
 all certificates and their states.
 """
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypedDict
 if TYPE_CHECKING:
     from typing import Callable, Iterator, ParamSpec, TypeVar
     P = ParamSpec("P")
@@ -22,7 +22,15 @@ import json
 from certadmin import config
 from certadmin.lib.util import runtime_state
 
-RegistryEntry = dict[str, str | bool]
+class RegistryEntry(TypedDict):
+    user: str
+    device: str
+    serial: str
+    not_before: str
+    not_after: str
+    revoked: bool
+
+
 RegistryData = dict[str, RegistryEntry]
 CertInfo = dict[str, str]
 
