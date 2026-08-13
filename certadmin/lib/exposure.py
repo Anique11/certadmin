@@ -30,7 +30,8 @@ def expose_p12(common_name: str) -> None:
     exposure_path = config.P12_SHARE_PATH / f"{common_name}.p12"
     util.ensure_not_exists(exposure_path)
     print("Exposing PKCS12 bundle for client download")
-    shutil.copy2(p12, exposure_path)
+    if not util.runtime_state.dry_run:
+        shutil.copy2(p12, exposure_path)
     util.run_cmd(["chown", "root:www-data", str(exposure_path)])
     util.run_cmd(["chmod", "640", str(exposure_path)])
     print(f"Exposure path: {exposure_path}")
@@ -44,7 +45,8 @@ def unexpose_p12(common_name: str) -> None:
     if is_exposed(common_name):
         print(f"Removing exposed PKCS12 bundle for {common_name}")
         exposure_path = config.P12_SHARE_PATH / f"{common_name}.p12"
-        exposure_path.unlink()
+        if not util.runtime_state.dry_run:
+            exposure_path.unlink()
     else:
         print(f"No exposed PKCS12 bundle found for {common_name}")
 
