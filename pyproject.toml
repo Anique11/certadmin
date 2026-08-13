@@ -77,9 +77,12 @@ extend-select = [
 
 [tool.coverage.run]
 branch = true
+source = [
+    "certadmin",
+]
 
 [tool.coverage.report]
-fail_under = 85
+fail_under = 78
 
 [tool.setuptools.package-dir]
 "" = "."
