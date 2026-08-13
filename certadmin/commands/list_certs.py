@@ -1,13 +1,17 @@
 """List certificates in the registry."""
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     import argparse
     from typing import Any
+
     from certadmin.lib.registry import RegistryData
 
 from certadmin.lib import registry
 from certadmin.lib.exposure import is_exposed
+
 
 def display_list(reg_list: dict[str, Any]) -> None:
     """Print dictionary keys as a numbered list."""

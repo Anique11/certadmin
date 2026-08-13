@@ -1,17 +1,18 @@
 """Cryptographic operations for certificate management."""
 
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from pathlib import Path
 
-from datetime import datetime
 import re
 import subprocess
+from datetime import datetime
 
 from certadmin import config
 from certadmin.lib import util
-
 
 
 def gen_key(common_name: str) -> Path:

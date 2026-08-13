@@ -3,13 +3,14 @@ It will retrieve the certificate info from the registry
 and display it in a human-readable format.
 """
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     import argparse
 
 from certadmin.lib.exposure import is_exposed
 from certadmin.lib.registry import get_registry_entry
-
 
 
 def run(args: argparse.Namespace) -> None:

@@ -1,13 +1,15 @@
 """Utility functions for certificate management."""
 
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
 
-from dataclasses import dataclass
 import subprocess
+from dataclasses import dataclass
 
 
 @dataclass

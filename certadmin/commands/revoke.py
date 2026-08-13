@@ -1,14 +1,15 @@
 """Revoke active certificates"""
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     import argparse
 
 
+from certadmin.lib import registry, util
 from certadmin.lib.crypto import revoke_cert
 from certadmin.lib.exposure import is_exposed, unexpose_p12
-from certadmin.lib import registry, util
-
 
 
 def run(args: argparse.Namespace) -> None:

@@ -48,6 +48,19 @@ When modifying code:
 * avoid writing tests merely to increase coverage numbers
 * prefer tests that document expected behaviour
 
+## Before each commit
+
+Run every verification command defined by `.github/workflows/tests.yml`:
+
+```bash
+python -m ruff check .
+python -m mypy
+python -m pytest
+```
+
+Do not treat a narrower focused test run or a partial lint/type check as a
+substitute for this full workflow-equivalent verification.
+
 ## Before making changes
 
 Summarise:

@@ -7,8 +7,8 @@ from __future__ import annotations
 import shutil
 
 from certadmin import config
-from certadmin.lib.registry import is_revoked
 from certadmin.lib import util
+from certadmin.lib.registry import is_revoked
 
 
 def expose_p12(common_name: str) -> None:

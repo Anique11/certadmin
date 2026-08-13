@@ -2,20 +2,18 @@
 """Utility for automated certification management."""
 
 import argparse
+import re
+import sys
 from importlib import metadata
 from pathlib import Path
-import re
 from subprocess import CalledProcessError
-import sys
 
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from certadmin import config
-from certadmin.commands import enroll, expose, unexpose, revoke, list_certs, show
+from certadmin.commands import enroll, expose, list_certs, revoke, show, unexpose
 from certadmin.lib.util import runtime_state
-
-
 
 USER_RE = re.compile(r"^[a-z0-9]+$")
 DEVICE_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -172,7 +170,8 @@ def main() -> None:
     except FileNotFoundError as e:
         print(f"File not found: {e}")
         sys.exit(3)
-    except Exception as e:
+    # Keep unexpected implementation errors behind the user-facing CLI boundary.
+    except Exception as e:  # noqa: BLE001
         print(f"Unexpected error: {e}")
         sys.exit(1)
 

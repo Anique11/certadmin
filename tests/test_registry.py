@@ -1,7 +1,6 @@
 from multiprocessing import Event, Process
 from pathlib import Path
 
-
 from certadmin import config
 from certadmin.lib import registry
 

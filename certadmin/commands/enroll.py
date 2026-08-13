@@ -1,14 +1,15 @@
 """Orchestrate operations around enrolling a new client certificate device."""
 
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     import argparse
     from pathlib import Path
 
-from certadmin.lib import crypto
+from certadmin.lib import crypto, util
 from certadmin.lib.registry import add_entry as registry_add_entry
-from certadmin.lib import util
 
 
 def run(args: argparse.Namespace) -> None:

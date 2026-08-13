@@ -8,19 +8,20 @@ The registry allows the certificate management system to keep track of
 all certificates and their states.
 """
 from __future__ import annotations
-from typing import TYPE_CHECKING, TypedDict
-if TYPE_CHECKING:
-    from typing import Callable, Iterator, ParamSpec, TypeVar
-    P = ParamSpec("P")
-    R = TypeVar("R")
 
-from contextlib import contextmanager
+from typing import TYPE_CHECKING, TypedDict
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Generator
+
 import fcntl
-from functools import wraps
 import json
+from contextlib import contextmanager
+from functools import wraps
 
 from certadmin import config
 from certadmin.lib.util import runtime_state
+
 
 class RegistryEntry(TypedDict):
     user: str
@@ -36,7 +37,7 @@ CertInfo = dict[str, str]
 
 
 @contextmanager
-def registry_write_lock() -> Iterator[None]:
+def registry_write_lock() -> Generator[None]:
     """Hold an exclusive lock for registry read-modify-write operations."""
     lock_path = config.REGISTRY_PATH.with_suffix(".lock")
     lock_path.parent.mkdir(parents=True, exist_ok=True)
@@ -48,7 +49,7 @@ def registry_write_lock() -> Iterator[None]:
             fcntl.flock(lock_file, fcntl.LOCK_UN)
 
 
-def with_registry_write_lock(func: Callable[P, R]) -> Callable[P, R]:
+def with_registry_write_lock[**P, R](func: Callable[P, R]) -> Callable[P, R]:
     """Run a registry write operation under the registry write lock."""
     @wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:

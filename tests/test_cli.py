@@ -2,8 +2,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from certadmin import config
 from certadmin import certadmin as certadmin_module
+from certadmin import config
 
 
 class FakeRuntimeState:
