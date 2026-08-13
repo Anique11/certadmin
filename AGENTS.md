@@ -55,7 +55,9 @@ Run every verification command defined by `.github/workflows/tests.yml`:
 ```bash
 python -m ruff check .
 python -m mypy
-python -m pytest
+python -m coverage erase
+python -m coverage run -m pytest
+python -m coverage report
 ```
 
 Do not treat a narrower focused test run or a partial lint/type check as a

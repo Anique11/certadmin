@@ -75,8 +75,11 @@ extend-select = [
     "UP",
 ]
 
+[tool.coverage.run]
+branch = true
+
 [tool.coverage.report]
-fail_under = 77
+fail_under = 85
 
 [tool.setuptools.package-dir]
 "" = "."
