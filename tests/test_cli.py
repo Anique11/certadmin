@@ -1,7 +1,30 @@
+from types import SimpleNamespace
+
 import pytest
 
 from certadmin import config
 from certadmin import certadmin as certadmin_module
+
+
+class FakeRuntimeState:
+    dry_run = False
+    force_overwrite = False
+    locked = False
+
+    def lock(self) -> None:
+        self.locked = True
+
+
+@pytest.fixture
+def fake_runtime_state(monkeypatch):
+    state = FakeRuntimeState()
+    monkeypatch.setattr(certadmin_module, "runtime_state", state)
+    return state
+
+
+def run_cli(monkeypatch, argv: list[str]) -> None:
+    monkeypatch.setattr(certadmin_module.sys, "argv", ["certadmin", *argv])
+    certadmin_module.main()
 
 
 def test_validate_user_ok():
@@ -67,56 +90,103 @@ def test_runtime_paths_accept_pki_state_outside_app_dir(tmp_path, monkeypatch):
     config.validate_runtime_paths()
 
 
-# Command-line parsing tests - valid cases
+# Command-line entrypoint tests - valid cases
+
+@pytest.mark.parametrize("package_version", ["1.2.3", "2.0.0rc1"])
+def test_cli_reports_package_version(
+    capsys,
+    monkeypatch,
+    package_version,
+):
+    """CLI should report the version from installed package metadata."""
+    requested_distributions = []
+
+    def fake_version(distribution_name):
+        requested_distributions.append(distribution_name)
+        return package_version
+
+    monkeypatch.setattr(
+        certadmin_module,
+        "metadata",
+        SimpleNamespace(version=fake_version),
+        raising=False,
+    )
+
+    with pytest.raises(SystemExit) as exc_info:
+        run_cli(monkeypatch, ["--version"])
+
+    assert exc_info.value.code == 0
+    assert capsys.readouterr().out == f"certadmin {package_version}\n"
+    assert requested_distributions == ["certadmin"]
 
 
-def test_parser_accepts_valid_enroll():
-    """Parser should succeed with valid enroll arguments."""
-    parser = certadmin_module.build_parser()
-    args = parser.parse_args(["enroll", "alice", "iphone14"])
-    assert args.user == "alice"
-    assert args.device == "iphone14"
+def test_cli_accepts_valid_enroll(monkeypatch, fake_runtime_state):
+    """CLI should normalize and dispatch valid enroll arguments."""
+    captured_args = None
+
+    def fake_enroll(args):
+        nonlocal captured_args
+        captured_args = args
+
+    monkeypatch.setattr(certadmin_module.enroll, "run", fake_enroll)
+
+    run_cli(monkeypatch, ["enroll", "Alice", "iPhone14"])
+
+    assert captured_args.user == "alice"
+    assert captured_args.device == "iphone14"
+    assert fake_runtime_state.locked is True
 
 
-def test_parser_accepts_valid_expose():
-    """Parser should succeed with valid expose arguments."""
-    parser = certadmin_module.build_parser()
-    args = parser.parse_args(["expose", "alice-iphone14"])
-    assert args.common_name == "alice-iphone14"
+def test_cli_accepts_valid_expose(monkeypatch, fake_runtime_state):
+    """CLI should normalize and dispatch valid expose arguments."""
+    captured_args = None
+
+    def fake_expose(args):
+        nonlocal captured_args
+        captured_args = args
+
+    monkeypatch.setattr(certadmin_module.expose, "run", fake_expose)
+
+    run_cli(monkeypatch, ["expose", "Alice-iPhone14"])
+
+    assert captured_args.common_name == "alice-iphone14"
+    assert fake_runtime_state.locked is True
 
 
-def test_parser_accepts_list_with_no_arguments():
-    """Parser should accept list command with no extra arguments."""
-    parser = certadmin_module.build_parser()
-    args = parser.parse_args(["list"])
-    assert args.active is False
-    assert args.revoked is False
-    assert args.exposed is False
-    assert args.unexposed is False
+def test_cli_accepts_list_with_no_arguments(monkeypatch):
+    """CLI should accept list command with no extra arguments."""
+    captured_args = None
+
+    def fake_list(args):
+        nonlocal captured_args
+        captured_args = args
+
+    monkeypatch.setattr(certadmin_module.list_certs, "run", fake_list)
+
+    run_cli(monkeypatch, ["list"])
+
+    assert captured_args.active is False
+    assert captured_args.revoked is False
+    assert captured_args.exposed is False
+    assert captured_args.unexposed is False
 
 
-def test_parser_accepts_flags():
-    """Parser should accept --dry-run and --force flags."""
-    parser = certadmin_module.build_parser()
-    args = parser.parse_args(["--dry-run", "enroll", "alice", "iphone14"])
-    assert args.dry_run is True
-    assert args.force is False
-    
-    args = parser.parse_args(["--force", "expose", "alice-iphone14"])
-    assert args.force is True
-    assert args.dry_run is False
-    
-    args = parser.parse_args(["--dry-run", "--force", "list"])
-    assert args.dry_run is True
-    assert args.force is True
+def test_cli_accepts_flags(monkeypatch, fake_runtime_state):
+    """CLI should apply --dry-run and --force flags to runtime state."""
+    monkeypatch.setattr(certadmin_module.list_certs, "run", lambda args: None)
+
+    run_cli(monkeypatch, ["--dry-run", "--force", "list"])
+
+    assert fake_runtime_state.dry_run is True
+    assert fake_runtime_state.force_overwrite is True
 
 
 # Error message tests
-def test_missing_subcommand_error_message(capsys):
+def test_missing_subcommand_error_message(capsys, monkeypatch):
     """Error message should guide user when subcommand is missing."""
-    parser = certadmin_module.build_parser()
+    monkeypatch.setattr(certadmin_module.sys, "argv", ["certadmin"])
     with pytest.raises(SystemExit):
-        parser.parse_args([])
+        certadmin_module.main()
     captured = capsys.readouterr()
     
     # Message should mention required argument or usage
@@ -124,88 +194,92 @@ def test_missing_subcommand_error_message(capsys):
     assert "required" in error_output.lower() or "usage" in error_output.lower()
 
 
-def test_unknown_subcommand_error_message(capsys):
+def test_unknown_subcommand_error_message(capsys, monkeypatch):
     """Error message should identify unknown subcommand."""
-    parser = certadmin_module.build_parser()
+    monkeypatch.setattr(certadmin_module.sys, "argv", ["certadmin", "badcommand"])
     with pytest.raises(SystemExit):
-        parser.parse_args(["badcommand"])
+        certadmin_module.main()
     captured = capsys.readouterr()
     
     error_output = captured.err + captured.out
     assert "badcommand" in error_output or "invalid choice" in error_output.lower()
 
 
-def test_enroll_missing_arguments_error_message(capsys):
+def test_enroll_missing_arguments_error_message(capsys, monkeypatch):
     """Error message should specify which arguments are needed for enroll."""
-    parser = certadmin_module.build_parser()
+    monkeypatch.setattr(certadmin_module.sys, "argv", ["certadmin", "enroll"])
     with pytest.raises(SystemExit):
-        parser.parse_args(["enroll"])
+        certadmin_module.main()
     captured = capsys.readouterr()
     
     error_output = captured.err + captured.out
     assert "required" in error_output.lower() or "user" in error_output.lower()
 
 
-def test_enroll_missing_device_error_message(capsys):
+def test_enroll_missing_device_error_message(capsys, monkeypatch):
     """Error message should specify device is needed when only user provided."""
-    parser = certadmin_module.build_parser()
+    monkeypatch.setattr(certadmin_module.sys, "argv", ["certadmin", "enroll", "alice"])
     with pytest.raises(SystemExit):
-        parser.parse_args(["enroll", "alice"])
+        certadmin_module.main()
     captured = capsys.readouterr()
     
     error_output = captured.err + captured.out
     assert "required" in error_output.lower() or "device" in error_output.lower()
 
 
-def test_expose_missing_argument_error_message(capsys):
+def test_expose_missing_argument_error_message(capsys, monkeypatch):
     """Error message should specify common_name is needed for expose."""
-    parser = certadmin_module.build_parser()
+    monkeypatch.setattr(certadmin_module.sys, "argv", ["certadmin", "expose"])
     with pytest.raises(SystemExit):
-        parser.parse_args(["expose"])
+        certadmin_module.main()
     captured = capsys.readouterr()
     
     error_output = captured.err + captured.out
     assert "required" in error_output.lower() or "common_name" in error_output.lower()
 
 
-def test_unexpose_missing_argument_error_message(capsys):
+def test_unexpose_missing_argument_error_message(capsys, monkeypatch):
     """Error message should specify common_name is needed for unexpose."""
-    parser = certadmin_module.build_parser()
+    monkeypatch.setattr(certadmin_module.sys, "argv", ["certadmin", "unexpose"])
     with pytest.raises(SystemExit):
-        parser.parse_args(["unexpose"])
+        certadmin_module.main()
     captured = capsys.readouterr()
     
     error_output = captured.err + captured.out
     assert "required" in error_output.lower() or "common_name" in error_output.lower()
 
 
-def test_revoke_missing_argument_error_message(capsys):
+def test_revoke_missing_argument_error_message(capsys, monkeypatch):
     """Error message should specify common_name is needed for revoke."""
-    parser = certadmin_module.build_parser()
+    monkeypatch.setattr(certadmin_module.sys, "argv", ["certadmin", "revoke"])
     with pytest.raises(SystemExit):
-        parser.parse_args(["revoke"])
+        certadmin_module.main()
     captured = capsys.readouterr()
     
     error_output = captured.err + captured.out
     assert "required" in error_output.lower() or "common_name" in error_output.lower()
 
 
-def test_show_missing_argument_error_message(capsys):
+def test_show_missing_argument_error_message(capsys, monkeypatch):
     """Error message should specify common_name is needed for show."""
-    parser = certadmin_module.build_parser()
+    monkeypatch.setattr(certadmin_module.sys, "argv", ["certadmin", "show"])
     with pytest.raises(SystemExit):
-        parser.parse_args(["show"])
+        certadmin_module.main()
     captured = capsys.readouterr()
     
     error_output = captured.err + captured.out
     assert "required" in error_output.lower() or "common_name" in error_output.lower()
 
 
-def test_list_with_mutually_exclusive_flags_error_message(capsys):
+def test_list_with_mutually_exclusive_flags_error_message(capsys, monkeypatch):
     """Error message should indicate list flags are mutually exclusive."""
-    parser = certadmin_module.build_parser()
+    monkeypatch.setattr(
+        certadmin_module.sys,
+        "argv",
+        ["certadmin", "list", "--active", "--revoked"],
+    )
     with pytest.raises(SystemExit):
-        parser.parse_args(["list", "--active", "--revoked"])
+        certadmin_module.main()
     captured = capsys.readouterr()
     
     error_output = captured.err + captured.out

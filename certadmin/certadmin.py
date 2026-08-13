@@ -2,6 +2,7 @@
 """Utility for automated certification management."""
 
 import argparse
+from importlib import metadata
 from pathlib import Path
 import re
 from subprocess import CalledProcessError
@@ -67,7 +68,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--force", action="store_true",
         help="Overwrite existing files or registry entries where applicable"
     )
-    parser.add_argument("--version", action="version", version="%(prog)s 1.0")
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {metadata.version('certadmin')}",
+    )
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
