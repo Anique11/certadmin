@@ -134,16 +134,20 @@ This:
 Commands that modify state support dry-run mode:
 
 ```bash
-sudo certadmin enroll bob laptop --dry-run
+sudo certadmin --dry-run enroll bob laptop
 ```
+
+`--dry-run` is a global option and must be placed before the command.
 
 ### Force overwrite
 
 Commands that generate files support force mode:
 
 ```bash
-sudo certadmin enroll alice laptop --force
+sudo certadmin --force enroll alice laptop
 ```
+
+`--force` is a global option and must be placed before the command.
 
 ## Installation
 
