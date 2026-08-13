@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 from certadmin.lib.crypto import revoke_cert
 from certadmin.lib.exposure import is_exposed, unexpose_p12
-from certadmin.lib import registry
+from certadmin.lib import registry, util
 
 
 
@@ -24,4 +24,5 @@ def run(args: argparse.Namespace) -> None:
     
     revoke_cert(common_name)
 
-    registry.mark_revoked(common_name)
+    if not util.runtime_state.dry_run:
+        registry.mark_revoked(common_name)
