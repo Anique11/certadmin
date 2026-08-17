@@ -45,6 +45,24 @@ CertAdmin manages the following workflow:
 
 Certificate metadata is stored in a simple JSON registry for convenience and reporting. OpenSSL remains the authoritative source for certificate issuance and revocation state.
 
+## Privilege requirements
+
+Commands that modify certificate or filesystem state require root privileges:
+
+* `enroll`
+* `expose`
+* `unexpose`
+* `revoke`
+
+Run these commands with `sudo`. If one is started without root privileges,
+CertAdmin stops before executing the command and reports that sudo is required.
+
+The `list` and `show` commands are read-only and do not require sudo.
+
+Write-enabled commands may also be run without sudo when `--dry-run` is used.
+CertAdmin warns that sudo will be required for real execution, then continues
+without modifying filesystem or registry state or executing external commands.
+
 ## Commands
 
 ### List certificates (as stored in the registry)
@@ -134,10 +152,12 @@ This:
 Commands that modify state support dry-run mode:
 
 ```bash
-sudo certadmin --dry-run enroll bob laptop
+certadmin --dry-run enroll bob laptop
 ```
 
-`--dry-run` is a global option and must be placed before the command.
+`--dry-run` is a global option and must be placed before the command. When a
+write-enabled command is run without sudo in dry-run mode, CertAdmin prints a
+warning and continues without making changes.
 
 ### Force overwrite
 
@@ -229,9 +249,11 @@ crl/                              root:root 755
 registry.json                     root:root 644
 ```
 
-Administrative commands should be executed with `sudo`.
+The `enroll`, `expose`, `unexpose`, and `revoke` commands must be executed with
+`sudo` unless `--dry-run` is supplied.
 
-Read-only commands such as `list` and `show` may be executed without elevated privileges.
+The read-only `list` and `show` commands may be executed without elevated
+privileges.
 
 ## Setup checklist
 

@@ -1,3 +1,5 @@
+import argparse
+import os
 from types import SimpleNamespace
 
 import pytest
@@ -122,7 +124,8 @@ def test_cli_reports_package_version(
 
 def test_cli_accepts_valid_enroll(monkeypatch, fake_runtime_state):
     """CLI should normalize and dispatch valid enroll arguments."""
-    captured_args = None
+    monkeypatch.setattr(os, "geteuid", lambda: 0)
+    captured_args: argparse.Namespace | None = None
 
     def fake_enroll(args):
         nonlocal captured_args
@@ -132,6 +135,7 @@ def test_cli_accepts_valid_enroll(monkeypatch, fake_runtime_state):
 
     run_cli(monkeypatch, ["enroll", "Alice", "iPhone14"])
 
+    assert captured_args is not None
     assert captured_args.user == "alice"
     assert captured_args.device == "iphone14"
     assert fake_runtime_state.locked is True
@@ -139,7 +143,8 @@ def test_cli_accepts_valid_enroll(monkeypatch, fake_runtime_state):
 
 def test_cli_accepts_valid_expose(monkeypatch, fake_runtime_state):
     """CLI should normalize and dispatch valid expose arguments."""
-    captured_args = None
+    monkeypatch.setattr(os, "geteuid", lambda: 0)
+    captured_args: argparse.Namespace | None = None
 
     def fake_expose(args):
         nonlocal captured_args
@@ -149,13 +154,14 @@ def test_cli_accepts_valid_expose(monkeypatch, fake_runtime_state):
 
     run_cli(monkeypatch, ["expose", "Alice-iPhone14"])
 
+    assert captured_args is not None
     assert captured_args.common_name == "alice-iphone14"
     assert fake_runtime_state.locked is True
 
 
 def test_cli_accepts_list_with_no_arguments(monkeypatch):
     """CLI should accept list command with no extra arguments."""
-    captured_args = None
+    captured_args: argparse.Namespace | None = None
 
     def fake_list(args):
         nonlocal captured_args
@@ -165,6 +171,7 @@ def test_cli_accepts_list_with_no_arguments(monkeypatch):
 
     run_cli(monkeypatch, ["list"])
 
+    assert captured_args is not None
     assert captured_args.active is False
     assert captured_args.revoked is False
     assert captured_args.exposed is False
@@ -179,6 +186,81 @@ def test_cli_accepts_flags(monkeypatch, fake_runtime_state):
 
     assert fake_runtime_state.dry_run is True
     assert fake_runtime_state.force_overwrite is True
+
+
+@pytest.mark.parametrize(
+    "argv",
+    [
+        ["enroll", "alice", "laptop"],
+        ["expose", "alice-laptop"],
+        ["unexpose", "alice-laptop"],
+        ["revoke", "alice-laptop"],
+    ],
+)
+def test_cli_write_commands_require_sudo(
+    argv,
+    capsys,
+    monkeypatch,
+    fake_runtime_state,
+):
+    """Write-enabled commands must stop before dispatch when not run as root."""
+    monkeypatch.setattr(os, "geteuid", lambda: 1000)
+
+    def fail_if_dispatched(args):
+        raise AssertionError("Write-enabled command dispatched without sudo")
+
+    for command in (
+        certadmin_module.enroll,
+        certadmin_module.expose,
+        certadmin_module.unexpose,
+        certadmin_module.revoke,
+    ):
+        monkeypatch.setattr(command, "run", fail_if_dispatched)
+
+    with pytest.raises(SystemExit) as exc_info:
+        run_cli(monkeypatch, argv)
+
+    assert exc_info.value.code == 1
+    assert capsys.readouterr().out == "This command requires sudo.\n"
+
+
+@pytest.mark.parametrize(
+    "argv",
+    [
+        ["enroll", "alice", "laptop"],
+        ["expose", "alice-laptop"],
+        ["unexpose", "alice-laptop"],
+        ["revoke", "alice-laptop"],
+    ],
+)
+def test_cli_write_commands_warn_without_sudo_during_dry_run(
+    argv,
+    capsys,
+    monkeypatch,
+    fake_runtime_state,
+):
+    """Dry-run should warn about sudo but still dispatch the command."""
+    monkeypatch.setattr(os, "geteuid", lambda: 1000)
+    dispatched = False
+
+    def record_dispatch(args):
+        nonlocal dispatched
+        dispatched = True
+
+    for command in (
+        certadmin_module.enroll,
+        certadmin_module.expose,
+        certadmin_module.unexpose,
+        certadmin_module.revoke,
+    ):
+        monkeypatch.setattr(command, "run", record_dispatch)
+
+    run_cli(monkeypatch, ["--dry-run", *argv])
+
+    assert dispatched is True
+    assert capsys.readouterr().out == (
+        "Warning: This command requires sudo without --dry-run.\n"
+    )
 
 
 # Error message tests

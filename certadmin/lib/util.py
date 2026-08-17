@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
 
+import os
 import subprocess
 from dataclasses import dataclass
 
@@ -28,6 +29,17 @@ class RuntimeState:
         super().__setattr__(name, value)
 
 runtime_state = RuntimeState()
+
+
+def require_root(*, dry_run: bool) -> None:
+    """Require root privileges, allowing non-root dry-run with a warning."""
+    if os.geteuid() == 0:
+        return
+    if dry_run:
+        print("Warning: This command requires sudo without --dry-run.")
+        return
+    raise PermissionError("This command requires sudo.")
+
 
 def ensure_not_exists(path: Path) -> None:
     """Fail if the given path exists unless force overwrite is enabled."""

@@ -13,7 +13,7 @@ if __package__ in (None, ""):
 
 from certadmin import config
 from certadmin.commands import enroll, expose, list_certs, revoke, show, unexpose
-from certadmin.lib.util import runtime_state
+from certadmin.lib.util import require_root, runtime_state
 
 USER_RE = re.compile(r"^[a-z0-9]+$")
 DEVICE_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -80,7 +80,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     enroll_parser.add_argument("user", help="User name")
     enroll_parser.add_argument("device", help="Device name")
-    enroll_parser.set_defaults(func=enroll.run)
+    enroll_parser.set_defaults(func=enroll.run, requires_root=True)
 
     # expose
     expose_parser = subparsers.add_parser("expose",
@@ -89,7 +89,7 @@ def build_parser() -> argparse.ArgumentParser:
     expose_parser.add_argument("common_name",
         help="Certificate common name"
     )
-    expose_parser.set_defaults(func=expose.run)
+    expose_parser.set_defaults(func=expose.run, requires_root=True)
 
     # unexpose
     unexpose_parser = subparsers.add_parser("unexpose",
@@ -98,7 +98,7 @@ def build_parser() -> argparse.ArgumentParser:
     unexpose_parser.add_argument("common_name",
         help="Certificate common name"
     )
-    unexpose_parser.set_defaults(func=unexpose.run)
+    unexpose_parser.set_defaults(func=unexpose.run, requires_root=True)
 
     # revoke
     revoke_parser = subparsers.add_parser("revoke",
@@ -107,7 +107,7 @@ def build_parser() -> argparse.ArgumentParser:
     revoke_parser.add_argument("common_name",
         help="Certificate common name"
     )
-    revoke_parser.set_defaults(func=revoke.run)
+    revoke_parser.set_defaults(func=revoke.run, requires_root=True)
 
     # list
     list_parser = subparsers.add_parser("list",
@@ -157,6 +157,8 @@ def main() -> None:
         runtime_state.dry_run = args.dry_run
         runtime_state.force_overwrite = args.force
         runtime_state.lock()
+        if getattr(args, "requires_root", False):
+            require_root(dry_run=runtime_state.dry_run)
         args.func(args)
     except ValueError as e:
         print(e)
@@ -170,6 +172,9 @@ def main() -> None:
     except FileNotFoundError as e:
         print(f"File not found: {e}")
         sys.exit(3)
+    except PermissionError as e:
+        print(e)
+        sys.exit(1)
     # Keep unexpected implementation errors behind the user-facing CLI boundary.
     except Exception as e:  # noqa: BLE001
         print(f"Unexpected error: {e}")
