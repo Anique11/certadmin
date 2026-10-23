@@ -20,7 +20,9 @@ def openssl(*args: str, input_text: str | None = None) -> str:
 
 
 class _OpenSSLConfig(configparser.ConfigParser):
-    """Keep OpenSSL option and variable names case-sensitive."""
+    """Trim section padding while keeping OpenSSL names case-sensitive."""
+
+    SECTCRE = re.compile(r"\[\s*(?P<header>[^\]]+?)\s*\]")
 
     def optionxform(self, optionstr: str) -> str:
         return optionstr

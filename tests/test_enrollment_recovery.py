@@ -270,3 +270,42 @@ def test_relative_ca_paths_are_resolved_before_subprocess_chdir(ca, monkeypatch)
     run_enroll()
     crypto.revoke_cert("alice-work-laptop")
     assert (ca / "index.txt").read_text().startswith("R\t")
+
+
+@pytest.mark.parametrize("padding", [" ", "\t"])
+def test_resume_accepts_padded_section_names_with_dir_references(ca, padding):
+    configuration = config.OPENSSL_CONF.read_text().replace(
+        "[ca]", f"[{padding}ca{padding}]"
+    ).replace("[CA_default]", f"[{padding}CA_default{padding}]")
+    config.OPENSSL_CONF.write_text(configuration)
+    key = crypto.gen_key("alice-work-laptop")
+    csr = crypto.gen_csr("alice-work-laptop", key)
+    before = (key.read_bytes(), csr.read_bytes())
+
+    assert enrollment.ca_paths() == (ca / "index.txt", ca / "certs/ca.pem")
+    run_enroll(resume=True)
+
+    assert (key.read_bytes(), csr.read_bytes()) == before
+    assert config.OPENSSL_CONF.read_text() == configuration
+    assert len((ca / "index.txt").read_text().splitlines()) == 1
+
+
+def test_normalized_duplicate_sections_are_rejected(ca):
+    with config.OPENSSL_CONF.open("a") as configuration:
+        configuration.write("\n[ CA_default ]\ndatabase = ./different-index.txt\n")
+    with pytest.raises(ValueError, match="Cannot resolve CA state"):
+        enrollment.ca_paths()
+
+
+def test_padded_sections_do_not_allow_ambiguous_ca_state(ca):
+    run_enroll()
+    config.OPENSSL_CONF.write_text(config.OPENSSL_CONF.read_text().replace(
+        "[ca]", "[ ca ]"
+    ).replace("[CA_default]", "[ CA_default ]"))
+    database = ca / "index.txt"
+    database.write_text(database.read_text() * 2)
+    before = database.read_bytes()
+
+    with pytest.raises(ValueError, match="single valid CA record"):
+        run_enroll(resume=True)
+    assert database.read_bytes() == before
