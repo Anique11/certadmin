@@ -230,13 +230,13 @@ def test_invalid_ca_configuration_stops_before_key_creation(ca):
     config.OPENSSL_CONF.write_text(".include elsewhere.cnf\n")
     with pytest.raises(ValueError, match="Cannot resolve CA state"):
         run_enroll()
-    assert not (config.CLIENTS_PATH / "auke-asus-laptop.key.pem").exists()
+    assert not (config.CLIENTS_PATH / "alice-work-laptop.key.pem").exists()
 
 
 def test_cli_accepts_resume():
     from certadmin.certadmin import build_parser
 
-    args = build_parser().parse_args(["enroll", "--resume", "auke", "asus-laptop"])
+    args = build_parser().parse_args(["enroll", "--resume", "alice", "work-laptop"])
     assert args.resume
 
 
@@ -250,8 +250,8 @@ def test_real_signing_failure_reuses_original_key_and_csr(ca):
     )
     with pytest.raises(subprocess.CalledProcessError):
         run_enroll()
-    key = config.CLIENTS_PATH / "auke-asus-laptop.key.pem"
-    csr = config.CLIENTS_PATH / "auke-asus-laptop.csr.pem"
+    key = config.CLIENTS_PATH / "alice-work-laptop.key.pem"
+    csr = config.CLIENTS_PATH / "alice-work-laptop.csr.pem"
     before = (key.read_bytes(), csr.read_bytes())
     config.OPENSSL_CONF.write_text(configuration)
     run_enroll(resume=True)
@@ -268,5 +268,5 @@ def test_relative_ca_paths_are_resolved_before_subprocess_chdir(ca, monkeypatch)
     monkeypatch.setattr(config, "CLIENTS_PATH", Path("../clients"))
     monkeypatch.setattr(config, "CRL_PATH", Path("../crl/intermediate.crl.pem"))
     run_enroll()
-    crypto.revoke_cert("auke-asus-laptop")
+    crypto.revoke_cert("alice-work-laptop")
     assert (ca / "index.txt").read_text().startswith("R\t")
