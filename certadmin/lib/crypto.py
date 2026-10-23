@@ -60,7 +60,7 @@ def gen_csr(common_name: str, key: Path) -> Path:
     util.run_cmd([
         config.OPENSSL, "req", "-new",
         "-key", str(key),
-        "-out", str(csr),
+        "-out", str(csr.resolve()),
         "-subj", f"/C=NL/O=Private PKI/OU=devices/CN={common_name}"
     ])
     return csr
@@ -84,12 +84,12 @@ def sign_cert(common_name: str, csr: Path) -> Path:
     print("[Signing certificate]")
     util.run_cmd([
         config.OPENSSL, "ca",
-        "-config", str(config.OPENSSL_CONF),
+        "-config", str(config.OPENSSL_CONF.resolve()),
         "-extensions", "usr_cert",
-        "-in", str(csr),
-        "-out", str(cert),
+        "-in", str(csr.resolve()),
+        "-out", str(cert.resolve()),
         "-batch"
-    ])
+    ], cwd=config.BASE_PATH.resolve())
     return cert
 
 def gen_p12(common_name: str, key: Path, cert: Path) -> Path:
@@ -113,7 +113,7 @@ def gen_p12(common_name: str, key: Path, cert: Path) -> Path:
     util.run_cmd([
         config.OPENSSL, "pkcs12", "-export",
         "-inkey", str(key),
-        "-in", str(cert),
+        "-in", str(cert.resolve()),
         "-certfile", str(config.CHAIN_PATH),
         "-out", str(p12),
         "-name", common_name
@@ -138,7 +138,7 @@ def get_cert_info(cert: Path) -> dict[str, str]:
     print(f"Extracting certificate info from: {cert}")
     
     def run_openssl_x509(flag: str, extra_args: list[str] | None = None) -> str:
-        cmd = [config.OPENSSL, "x509", "-in", str(cert), "-noout", flag]
+        cmd = [config.OPENSSL, "x509", "-in", str(cert.resolve()), "-noout", flag]
         if extra_args:
             cmd.extend(extra_args)
         return subprocess.check_output(cmd, text=True).strip()
@@ -194,9 +194,9 @@ def revoke_cert(common_name: str) -> None:
     util.run_cmd([
         config.OPENSSL,
         "ca",
-        "-config", str(config.OPENSSL_CONF),
-        "-revoke", str(cert)
-    ])
+        "-config", str(config.OPENSSL_CONF.resolve()),
+        "-revoke", str(cert.resolve())
+    ], cwd=config.BASE_PATH.resolve())
     gen_crl()
 
 def gen_crl() -> None:
@@ -211,7 +211,7 @@ def gen_crl() -> None:
     util.run_cmd([
         config.OPENSSL,
         "ca",
-        "-config", str(config.OPENSSL_CONF),
+        "-config", str(config.OPENSSL_CONF.resolve()),
         "-gencrl",
-        "-out", str(config.CRL_PATH)
-    ])
+        "-out", str(config.CRL_PATH.resolve())
+    ], cwd=config.BASE_PATH.resolve())

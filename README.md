@@ -304,3 +304,50 @@ python3 -m certadmin --version
 ## License
 
 This project is licensed under the MIT License. See the included `LICENSE` file for details.
+
+### Recovering an interrupted enrollment
+
+CA signing, revocation and CRL generation run with `BASE_PATH` as their working
+directory. Paths such as `dir = .` in `openssl.cnf` therefore refer to the CA
+directory, regardless of the directory from which CertAdmin is invoked.
+
+Normal enrollment checks for existing artifacts before creating files. To reuse
+material from an interrupted enrollment, explicitly request recovery:
+
+```bash
+sudo certadmin --dry-run enroll --resume alice work-laptop
+sudo certadmin enroll --resume alice work-laptop
+```
+
+Resume validates existing keys, CSR signatures and identities, matching public
+keys, issued certificates and CA database records. Existing PKCS#12 bundles are
+checked against the key and certificate; OpenSSL prompts for their import
+password. Missing steps run only after validation. Matching registry entries are
+preserved; conflicting entries stop recovery. A completed matching enrollment
+can be resumed without issuing another certificate. `--resume` and `--force`
+cannot be combined. Force cannot replace an enrollment with an existing issued
+certificate or registry entry.
+
+Dry-run lists existing and missing artifacts and proposed actions. It does not
+execute OpenSSL, request passwords, or certify that existing material is valid;
+cryptographic and CA-state validation remains pending until actual execution.
+
+Before operational recovery, back up the CA state and client artifacts securely
+and ensure no other CA operation is running. CertAdmin assumes one administrator
+performs CA operations at a time. It does not roll back OpenSSL's database or
+serial counter. If the CA already records this identity but the expected issued
+file is missing, locate the corresponding certificate in the CA's configured
+`new_certs_dir`, verify its serial, identity and public key, and restore it to the
+expected `issued/<common-name>.cert.pem` path before resuming. Ambiguous, revoked,
+or conflicting records require manual reconciliation.
+
+An interrupted OpenSSL command may leave an invalid output file. Resume refuses
+to overwrite it. Preserve it for inspection; only move a confirmed incomplete
+CSR or bundle aside after checking its dependencies. Preserve the private key.
+Never remove a certificate or alter CA records merely to bypass a conflict.
+
+Enrollment's CA-state preflight supports conventional OpenSSL INI configuration
+with `[ca]`, `default_ca`, `database`, `certificate`, and `$variable`, `${variable}`
+or `$section::variable` path references. Includes and other unsupported syntax
+stop enrollment rather than guessing the authoritative database location. CA
+paths are resolved relative to `BASE_PATH`.

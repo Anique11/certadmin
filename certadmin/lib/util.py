@@ -49,7 +49,9 @@ def ensure_not_exists(path: Path) -> None:
             "Use --force to overwrite existing files."
         )
 
-def run_cmd(cmd: Sequence[str]) -> None:
+def run_cmd(cmd: Sequence[str], *, cwd: Path | None = None) -> None:
+    if cwd is not None:
+        print(f"[Working directory: {cwd}]")
     print(" ".join(cmd))
     if not runtime_state.dry_run:
-        subprocess.run(cmd, check=True)
+        subprocess.run(cmd, check=True, cwd=cwd)

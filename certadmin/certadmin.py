@@ -78,6 +78,8 @@ def build_parser() -> argparse.ArgumentParser:
     enroll_parser = subparsers.add_parser("enroll",
         help="Generate a new client certificate"
     )
+    enroll_parser.add_argument("--resume", action="store_true",
+        help="Validate and reuse existing enrollment artifacts")
     enroll_parser.add_argument("user", help="User name")
     enroll_parser.add_argument("device", help="Device name")
     enroll_parser.set_defaults(func=enroll.run, requires_root=True)
